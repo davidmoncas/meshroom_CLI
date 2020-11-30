@@ -26,7 +26,7 @@ def run_1_cameraInit(binPath,baseDir,imgDir):
     taskFolder = "/1_CameraInit"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 1/11 CAMERA INITIALIZATION -----------------------")
+    print("----------------------- 1/12 CAMERA INITIALIZATION -----------------------")
 
     imageFolder = "\"" + imgDir + "\""
     sensorDatabase = "\"\""
@@ -49,7 +49,7 @@ def run_2_featureExtraction(binPath,baseDir):
     taskFolder = "/2_FeatureExtraction"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 2/11 FEATURE EXTRACTION -----------------------")
+    print("----------------------- 2/12 FEATURE EXTRACTION -----------------------")
 
     _input = "\"" + baseDir + "/1_CameraInit/cameraInit.sfm" + "\""
     output = "\"" + baseDir + taskFolder + "\""
@@ -66,7 +66,7 @@ def run_3_imageMatching(binPath,baseDir):
     taskFolder = "/3_ImageMatching"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 3/11 IMAGE MATCHING -----------------------")
+    print("----------------------- 3/12 IMAGE MATCHING -----------------------")
 
     _input = "\"" + baseDir + "/1_CameraInit/cameraInit.sfm" + "\""
     featuresFolders = "\"" + baseDir + "/2_FeatureExtraction" + "\""
@@ -87,7 +87,7 @@ def run_4_featureMatching(binPath,baseDir):
     taskFolder = "/4_featureMatching"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 4/11 FEATURE MATCHING -----------------------")
+    print("----------------------- 4/12 FEATURE MATCHING -----------------------")
 
     _input = "\"" + baseDir + "/1_CameraInit/cameraInit.sfm" + "\""
     output = "\"" + baseDir + taskFolder + "\""
@@ -109,7 +109,7 @@ def run_5_structureFromMotion(binPath,baseDir):
     taskFolder = "/5_structureFromMotion"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 5/11 STRUCTURE FROM MOTION -----------------------")
+    print("----------------------- 5/12 STRUCTURE FROM MOTION -----------------------")
 
     _input = "\"" + dirname + "/" + baseDir + "/1_CameraInit/cameraInit.sfm" + "\""
     output = "\"" + dirname + "/" + baseDir + taskFolder + "/sfm.abc" + "\" "
@@ -134,7 +134,7 @@ def run_6_prepareDenseScene(binPath,baseDir):
     taskFolder = "/6_PrepareDenseScene"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 6/11 PREPARE DENSE SCENE -----------------------")
+    print("----------------------- 6/12 PREPARE DENSE SCENE -----------------------")
     _input = "\"" + dirname + "/" + baseDir + \
         "/5_structureFromMotion/sfm.abc" + "\""
     output = "\"" + dirname + "/" + baseDir + taskFolder + "\" "
@@ -152,7 +152,7 @@ def run_7_depthMap(binPath,baseDir):
     taskFolder = "/7_DepthMap"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 7/11 DEPTH MAP -----------------------")
+    print("----------------------- 7/12 DEPTH MAP -----------------------")
     _input = "\"" + dirname + "/" + baseDir + \
         "/5_structureFromMotion/sfm.abc" + "\""
     output = "\"" + dirname + "/" + baseDir + taskFolder + "\""
@@ -172,7 +172,7 @@ def run_8_depthMapFilter(binPath,baseDir):
     taskFolder = "/8_DepthMapFilter"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 8/11 DEPTH MAP FILTER-----------------------")
+    print("----------------------- 8/12 DEPTH MAP FILTER-----------------------")
     _input = "\"" + dirname + "/" + baseDir + \
         "/5_structureFromMotion/sfm.abc" + "\""
     output = "\"" + dirname + "/" + baseDir + taskFolder + "\""
@@ -192,7 +192,7 @@ def run_9_meshing(binPath,baseDir , maxInputPoints = 1000000  , maxPoints=200000
     taskFolder = "/9_Meshing"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 9/11 MESHING -----------------------")
+    print("----------------------- 9/12 MESHING -----------------------")
     _input = "\"" + dirname + "/" + baseDir + \
         "/5_structureFromMotion/sfm.abc" + "\""
     output = "\"" + dirname + "/" + baseDir + \
@@ -216,7 +216,7 @@ def run_10_meshFiltering(binPath,baseDir ,keepLargestMeshOnly="True"):
     taskFolder = "/10_MeshFiltering"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 10/11 MESH FILTERING -----------------------")
+    print("----------------------- 10/12 MESH FILTERING -----------------------")
     inputMesh = "\"" + dirname + "/" + baseDir + "/9_Meshing/mesh.obj" + "\""
     outputMesh = "\"" + dirname + "/" + baseDir + taskFolder + "/mesh.obj" + "\""
 
@@ -231,21 +231,38 @@ def run_10_meshFiltering(binPath,baseDir ,keepLargestMeshOnly="True"):
     os.system(cmdLine)
 
 
-
-
-
-
-
-
-def run_11_texturing(binPath , baseDir , textureSide = 4096 , downscale=4):
-    taskFolder = "/11_Texturing"
+def run_11_meshDecimate(binPath,baseDir , simplificationFactor=0.5 , maxVertices=15000):
+    taskFolder = "/11_MeshDecimate"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 11/11 TEXTURING  -----------------------")
+    print("----------------------- 11/12 MESH DECIMATE -----------------------")
+    inputMesh = "\"" + dirname + "/" + baseDir + "/10_MeshFiltering/mesh.obj" + "\""
+    outputMesh = "\"" + dirname + "/" + baseDir + taskFolder + "/mesh.obj" + "\""
+
+    cmdLine = binPath + "\\aliceVision_meshDecimate.exe"
+    cmdLine += " --input {0}  --output {1}".format(
+        inputMesh, outputMesh)
+
+    cmdLine += " --verboseLevel " + verboseLevel
+    cmdLine += " --simplificationFactor " + str(simplificationFactor)
+    cmdLine += " --maxVertices " + str(maxVertices)
+
+    print(cmdLine)
+    os.system(cmdLine)
+
+
+
+
+
+def run_12_texturing(binPath , baseDir , textureSide = 4096 , downscale=4):
+    taskFolder = "/12_Texturing"
+    SilentMkdir(baseDir + taskFolder)
+
+    print("----------------------- 12/12 TEXTURING  -----------------------")
     _input = "\"" + dirname + "/" + baseDir + \
         "/9_Meshing/densePointCloud.abc" + "\""
     imagesFolder = "\"" + dirname + "/" + baseDir + "/6_PrepareDenseScene" "\""
-    inputMesh = "\"" + dirname + "/" + baseDir + "/10_MeshFiltering/mesh.obj" + "\""
+    inputMesh = "\"" + dirname + "/" + baseDir + "/11_MeshDecimate/mesh.obj" + "\""
     output = "\"" + dirname + "/" + baseDir + taskFolder + "\""
 
     cmdLine = binPath + "\\aliceVision_texturing.exe"
@@ -281,7 +298,8 @@ def main():
     # run_8_depthMapFilter(binPath,baseDir)
     # run_9_meshing(binPath,baseDir)
     run_10_meshFiltering(binPath,baseDir)
-    run_11_texturing(binPath,baseDir)
+    run_11_meshDecimate(binPath,baseDir)
+    run_12_texturing(binPath,baseDir)
     print("-------------------------------- DONE ----------------------")
     input("press any key to close")
 
