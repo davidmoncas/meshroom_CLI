@@ -1,7 +1,8 @@
 import sys
-import os
+import os , os.path
 import shutil
 import math
+import time
 
 dirname = os.path.dirname(os.path.abspath(__file__))  # Absolute path
 
@@ -26,7 +27,7 @@ def run_1_cameraInit(binPath,baseDir,imgDir):
     taskFolder = "/1_CameraInit"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 1/12 CAMERA INITIALIZATION -----------------------")
+    print("----------------------- 1/13 CAMERA INITIALIZATION -----------------------")
 
     imageFolder = "\"" + imgDir + "\""
     sensorDatabase = "\"\""
@@ -49,7 +50,7 @@ def run_2_featureExtraction(binPath,baseDir):
     taskFolder = "/2_FeatureExtraction"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 2/12 FEATURE EXTRACTION -----------------------")
+    print("----------------------- 2/13 FEATURE EXTRACTION -----------------------")
 
     _input = "\"" + baseDir + "/1_CameraInit/cameraInit.sfm" + "\""
     output = "\"" + baseDir + taskFolder + "\""
@@ -66,7 +67,7 @@ def run_3_imageMatching(binPath,baseDir):
     taskFolder = "/3_ImageMatching"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 3/12 IMAGE MATCHING -----------------------")
+    print("----------------------- 3/13 IMAGE MATCHING -----------------------")
 
     _input = "\"" + baseDir + "/1_CameraInit/cameraInit.sfm" + "\""
     featuresFolders = "\"" + baseDir + "/2_FeatureExtraction" + "\""
@@ -87,7 +88,7 @@ def run_4_featureMatching(binPath,baseDir):
     taskFolder = "/4_featureMatching"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 4/12 FEATURE MATCHING -----------------------")
+    print("----------------------- 4/13 FEATURE MATCHING -----------------------")
 
     _input = "\"" + baseDir + "/1_CameraInit/cameraInit.sfm" + "\""
     output = "\"" + baseDir + taskFolder + "\""
@@ -109,7 +110,7 @@ def run_5_structureFromMotion(binPath,baseDir):
     taskFolder = "/5_structureFromMotion"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 5/12 STRUCTURE FROM MOTION -----------------------")
+    print("----------------------- 5/13 STRUCTURE FROM MOTION -----------------------")
 
     _input = "\"" + dirname + "/" + baseDir + "/1_CameraInit/cameraInit.sfm" + "\""
     output = "\"" + dirname + "/" + baseDir + taskFolder + "/sfm.abc" + "\" "
@@ -134,7 +135,7 @@ def run_6_prepareDenseScene(binPath,baseDir):
     taskFolder = "/6_PrepareDenseScene"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 6/12 PREPARE DENSE SCENE -----------------------")
+    print("----------------------- 6/13 PREPARE DENSE SCENE -----------------------")
     _input = "\"" + dirname + "/" + baseDir + \
         "/5_structureFromMotion/sfm.abc" + "\""
     output = "\"" + dirname + "/" + baseDir + taskFolder + "\" "
@@ -148,11 +149,11 @@ def run_6_prepareDenseScene(binPath,baseDir):
     os.system(cmdLine)
 
 
-def run_7_depthMap(binPath,baseDir):
+def run_7_depthMap(binPath,baseDir ,numberOfImages , groupSize=3 , downscale = 4):
     taskFolder = "/7_DepthMap"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 7/12 DEPTH MAP -----------------------")
+    print("----------------------- 7/13 DEPTH MAP -----------------------")
     _input = "\"" + dirname + "/" + baseDir + \
         "/5_structureFromMotion/sfm.abc" + "\""
     output = "\"" + dirname + "/" + baseDir + taskFolder + "\""
@@ -163,16 +164,28 @@ def run_7_depthMap(binPath,baseDir):
         _input,  output, imagesFolder)
 
     cmdLine += " --verboseLevel " + verboseLevel
+    cmdLine += " --downscale " + str(downscale)
 
-    print(cmdLine)
-    os.system(cmdLine)
+    
+    numberOfBatches = math.ceil( numberOfImages / groupSize )
+
+    for i in range(numberOfBatches):
+        groupStart = groupSize * i
+        currentGroupSize = min(groupSize,numberOfImages - groupStart)
+        if groupSize > 1:
+            print("DepthMap Group {} of {} : {} to {}".format(i, numberOfBatches, groupStart, currentGroupSize))
+            cmd = cmdLine + (" --rangeStart {} --rangeSize {}".format(str(groupStart),str(groupSize)))       
+            print(cmd)
+            os.system(cmd)
+
+
 
 
 def run_8_depthMapFilter(binPath,baseDir):
     taskFolder = "/8_DepthMapFilter"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 8/12 DEPTH MAP FILTER-----------------------")
+    print("----------------------- 8/13 DEPTH MAP FILTER-----------------------")
     _input = "\"" + dirname + "/" + baseDir + \
         "/5_structureFromMotion/sfm.abc" + "\""
     output = "\"" + dirname + "/" + baseDir + taskFolder + "\""
@@ -188,11 +201,11 @@ def run_8_depthMapFilter(binPath,baseDir):
     os.system(cmdLine)
 
 
-def run_9_meshing(binPath,baseDir , maxInputPoints = 1000000  , maxPoints=2000000):
+def run_9_meshing(binPath,baseDir  , maxInputPoints = 1000000  , maxPoints=2000000):
     taskFolder = "/9_Meshing"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 9/12 MESHING -----------------------")
+    print("----------------------- 9/13 MESHING -----------------------")
     _input = "\"" + dirname + "/" + baseDir + \
         "/5_structureFromMotion/sfm.abc" + "\""
     output = "\"" + dirname + "/" + baseDir + \
@@ -208,6 +221,7 @@ def run_9_meshing(binPath,baseDir , maxInputPoints = 1000000  , maxPoints=200000
     cmdLine += " --maxPoints " + str(maxPoints)
     cmdLine += " --verboseLevel " + verboseLevel
 
+
     print(cmdLine)
     os.system(cmdLine)
 
@@ -216,7 +230,7 @@ def run_10_meshFiltering(binPath,baseDir ,keepLargestMeshOnly="True"):
     taskFolder = "/10_MeshFiltering"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 10/12 MESH FILTERING -----------------------")
+    print("----------------------- 10/13 MESH FILTERING -----------------------")
     inputMesh = "\"" + dirname + "/" + baseDir + "/9_Meshing/mesh.obj" + "\""
     outputMesh = "\"" + dirname + "/" + baseDir + taskFolder + "/mesh.obj" + "\""
 
@@ -235,7 +249,7 @@ def run_11_meshDecimate(binPath,baseDir , simplificationFactor=0.5 , maxVertices
     taskFolder = "/11_MeshDecimate"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 11/12 MESH DECIMATE -----------------------")
+    print("----------------------- 11/13 MESH DECIMATE -----------------------")
     inputMesh = "\"" + dirname + "/" + baseDir + "/10_MeshFiltering/mesh.obj" + "\""
     outputMesh = "\"" + dirname + "/" + baseDir + taskFolder + "/mesh.obj" + "\""
 
@@ -251,18 +265,37 @@ def run_11_meshDecimate(binPath,baseDir , simplificationFactor=0.5 , maxVertices
     os.system(cmdLine)
 
 
-
-
-
-def run_12_texturing(binPath , baseDir , textureSide = 4096 , downscale=4):
-    taskFolder = "/12_Texturing"
+def run_12_meshResampling(binPath,baseDir , simplificationFactor=0.5 , maxVertices=15000):
+    taskFolder = "/12_MeshResampling"
     SilentMkdir(baseDir + taskFolder)
 
-    print("----------------------- 12/12 TEXTURING  -----------------------")
+    print("----------------------- 12/13 MESH RESAMPLING -----------------------")
+    inputMesh = "\"" + dirname + "/" + baseDir + "/11_MeshDecimate/mesh.obj" + "\""
+    outputMesh = "\"" + dirname + "/" + baseDir + taskFolder + "/mesh.obj" + "\""
+
+    cmdLine = binPath + "\\aliceVision_meshResampling.exe"
+    cmdLine += " --input {0}  --output {1}".format(
+        inputMesh, outputMesh)
+
+    cmdLine += " --verboseLevel " + verboseLevel
+    cmdLine += " --simplificationFactor " + str(simplificationFactor)
+    cmdLine += " --maxVertices " + str(maxVertices)
+
+    print(cmdLine)
+    os.system(cmdLine)
+
+
+
+
+def run_13_texturing(binPath , baseDir , textureSide = 4096 , downscale=4 , unwrapMethod = "Basic"):
+    taskFolder = "/13_Texturing"
+    SilentMkdir(baseDir + taskFolder)
+
+    print("----------------------- 13/13 TEXTURING  -----------------------")
     _input = "\"" + dirname + "/" + baseDir + \
         "/9_Meshing/densePointCloud.abc" + "\""
     imagesFolder = "\"" + dirname + "/" + baseDir + "/6_PrepareDenseScene" "\""
-    inputMesh = "\"" + dirname + "/" + baseDir + "/11_MeshDecimate/mesh.obj" + "\""
+    inputMesh = "\"" + dirname + "/" + baseDir + "/12_MeshResampling/mesh.obj" + "\""
     output = "\"" + dirname + "/" + baseDir + taskFolder + "\""
 
     cmdLine = binPath + "\\aliceVision_texturing.exe"
@@ -272,6 +305,7 @@ def run_12_texturing(binPath , baseDir , textureSide = 4096 , downscale=4):
     cmdLine += " --textureSide " + str(textureSide)
     cmdLine += " --downscale " + str(downscale)
     cmdLine += " --verboseLevel " + verboseLevel
+    cmdLine += " --unwrapMethod " + unwrapMethod
 
     print(cmdLine)
     os.system(cmdLine)
@@ -285,22 +319,29 @@ def main():
     baseDir = sys.argv[2]           ##  --> name of the Folder containing the process (a new folder will be created)
     imgDir = sys.argv[3]            ##  --> Folder containing the images 
 
+    numberOfImages =  len([name for name in os.listdir(imgDir) if os.path.isfile(os.path.join(imgDir, name))])      ## number of files in the folder
 
     SilentMkdir(baseDir)
 
-    # run_1_cameraInit(binPath,baseDir,imgDir)
-    # run_2_featureExtraction(binPath,baseDir)
-    # run_3_imageMatching(binPath,baseDir)
-    # run_4_featureMatching(binPath,baseDir)
-    # run_5_structureFromMotion(binPath,baseDir)
-    # run_6_prepareDenseScene(binPath,baseDir)
-    # run_7_depthMap(binPath,baseDir)
-    # run_8_depthMapFilter(binPath,baseDir)
-    # run_9_meshing(binPath,baseDir)
+    startTime = time.time()
+    
+    run_1_cameraInit(binPath,baseDir,imgDir)
+    run_2_featureExtraction(binPath,baseDir)
+    run_3_imageMatching(binPath,baseDir)
+    run_4_featureMatching(binPath,baseDir)
+    run_5_structureFromMotion(binPath,baseDir)
+    run_6_prepareDenseScene(binPath,baseDir)
+    run_7_depthMap(binPath,baseDir , numberOfImages )
+    run_8_depthMapFilter(binPath,baseDir)
+    run_9_meshing(binPath,baseDir)
     run_10_meshFiltering(binPath,baseDir)
     run_11_meshDecimate(binPath,baseDir)
-    run_12_texturing(binPath,baseDir)
+    run_12_meshResampling(binPath,baseDir)
+    run_13_texturing(binPath,baseDir)
+
+    endTime = time.time()
     print("-------------------------------- DONE ----------------------")
+    print("time elapsed: " + str(endTime-startTime))
     input("press any key to close")
 
 
