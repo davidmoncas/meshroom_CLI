@@ -3,15 +3,11 @@ import os , os.path
 import shutil
 import math
 import time
+from pathlib import Path
 
-dirname = os.path.dirname(os.path.abspath(__file__))  # Absolute path
+dirname = os.path.dirname(os.path.abspath(__file__))  # Absolute path of this file
 
-# path of the bin files of meshroom
-# binPath = "Meshroom-2020.1.1\\aliceVision\\bin"
-# baseDir = "intermediate"  # path of the output and temporal files
-# # path of the folder containing the images
-# imgDir = "dataset_monstree-master/mini6"
-verboseLevel = "\"" + "error" + "\""  # detail of the logs (error, info, etc)
+verboseLevel = "\"" + "info" + "\""  # detail of the logs (error, info, etc)
 
 
 def SilentMkdir(theDir):    # function to create a directory
@@ -30,13 +26,16 @@ def run_1_cameraInit(binPath,baseDir,imgDir):
     print("----------------------- 1/13 CAMERA INITIALIZATION -----------------------")
 
     imageFolder = "\"" + imgDir + "\""
-    sensorDatabase = "\"\""
+    sensorDatabase = "\""+ str(Path(binPath).parent) + "\\share\\aliceVision\\cameraSensors.db" "\"" # Path to the sensors database, might change in later versions of meshrrom
+   
     output = "\"" + baseDir + taskFolder + "/cameraInit.sfm" + "\""
 
     cmdLine = binPath + "\\aliceVision_cameraInit.exe"
     cmdLine += " --imageFolder {0} --sensorDatabase {1} --output {2}".format(
         imageFolder, sensorDatabase, output)
 
+    cmdLine += " --defaultFieldOfView 45" 
+    cmdLine += " --allowSingleView 1"
     cmdLine += " --verboseLevel " + verboseLevel
 
     print(cmdLine)
@@ -45,7 +44,7 @@ def run_1_cameraInit(binPath,baseDir,imgDir):
     return 0
 
 
-def run_2_featureExtraction(binPath,baseDir):
+def run_2_featureExtraction(binPath,baseDir , numberOfImages , imagesPerGroup=40):
 
     taskFolder = "/2_FeatureExtraction"
     SilentMkdir(baseDir + taskFolder)
@@ -55,11 +54,23 @@ def run_2_featureExtraction(binPath,baseDir):
     _input = "\"" + baseDir + "/1_CameraInit/cameraInit.sfm" + "\""
     output = "\"" + baseDir + taskFolder + "\""
 
-    cmdLine = binPath + "\\aliceVision_featureExtraction.exe"
-    cmdLine += " --input {0} --output {1} ".format(_input, output)
+    cmdLine = binPath + "\\aliceVision_featureExtraction"
+    cmdLine += " --input {0} --output {1}".format(_input, output)
+    cmdLine += " --forceCpuExtraction 1"
 
-    print(cmdLine)
-    os.system(cmdLine)
+
+    #when there are more than 40 images, it is good to send them in groups
+    if(numberOfImages>imagesPerGroup):
+        numberOfGroups=math.ceil( numberOfImages/imagesPerGroup)
+        for i in range(numberOfGroups):
+            cmd=cmdLine + " --rangeStart {} --rangeSize {} ".format(i*imagesPerGroup,imagesPerGroup)
+            print("------- group {} / {} --------".format(i+1,numberOfGroups))
+            print(cmd)
+            os.system(cmd)
+
+    else:
+        print(cmdLine)
+        os.system(cmdLine)
 
 
 def run_3_imageMatching(binPath,baseDir):
@@ -77,33 +88,48 @@ def run_3_imageMatching(binPath,baseDir):
     cmdLine += " --input {0} --featuresFolders {1} --output {2}".format(
         _input, featuresFolders, output)
 
+    cmdLine +=  "\""+ str(Path(binPath).parent)+ "/share/aliceVision/vlfeat_K80L3.SIFT.tree\""
     cmdLine += " --verboseLevel " + verboseLevel
 
     print(cmdLine)
     os.system(cmdLine)
 
 
-def run_4_featureMatching(binPath,baseDir):
+def run_4_featureMatching(binPath,baseDir,numberOfImages,imagesPerGroup=20):
 
     taskFolder = "/4_featureMatching"
     SilentMkdir(baseDir + taskFolder)
 
     print("----------------------- 4/13 FEATURE MATCHING -----------------------")
 
-    _input = "\"" + baseDir + "/1_CameraInit/cameraInit.sfm" + "\""
-    output = "\"" + baseDir + taskFolder + "\""
-    featuresFolders = "\"" + baseDir + "/2_FeatureExtraction" + "\""
-    imagePairsList = "\"" + baseDir + "/3_ImageMatching/imageMatches.txt" + "\""
+    _input = "\"" + dirname + "/" +  baseDir + "/1_CameraInit/cameraInit.sfm" + "\""
+    output = "\"" + dirname + "/" + baseDir + taskFolder + "\""
+    featuresFolders = "\"" + dirname + "/" + baseDir + "/2_FeatureExtraction" + "\""
+    imagePairsList = "\"" + dirname + "/"  + baseDir + "/3_ImageMatching/imageMatches.txt" + "\""
 
     cmdLine = binPath + "\\aliceVision_featureMatching.exe"
-    cmdLine += " --input {0} --featuresFolders {1} --output {2} --imagePairsList {3} ".format(
+    cmdLine += " --input {0} --featuresFolders {1} --output {2} --imagePairsList {3}".format(
         _input, featuresFolders, output, imagePairsList)
 
+    cmdLine += " --knownPosesGeometricErrorMax 5"
     cmdLine += " --verboseLevel " + verboseLevel
 
-    print(cmdLine)
-    os.system(cmdLine)
+    cmdLine += " --describerTypes sift --photometricMatchingMethod ANN_L2 --geometricEstimator acransac --geometricFilterType fundamental_matrix --distanceRatio 0.8"
+    cmdLine += " --maxIteration 2048 --geometricError 0.0 --maxMatches 0"
+    cmdLine += " --savePutativeMatches False --guidedMatching False --matchFromKnownCameraPoses False --exportDebugFiles True"
 
+    #when there are more than 20 images, it is good to send them in groups
+    if(numberOfImages>imagesPerGroup):
+        numberOfGroups=math.ceil( numberOfImages/imagesPerGroup)
+        for i in range(numberOfGroups):
+            cmd=cmdLine + " --rangeStart {} --rangeSize {} ".format(i*imagesPerGroup,imagesPerGroup)
+            print("------- group {} / {} --------".format(i,numberOfGroups))
+            print(cmd)
+            os.system(cmd)
+
+    else:
+        print(cmdLine)
+        os.system(cmdLine)
 
 def run_5_structureFromMotion(binPath,baseDir):
 
@@ -149,7 +175,7 @@ def run_6_prepareDenseScene(binPath,baseDir):
     os.system(cmdLine)
 
 
-def run_7_depthMap(binPath,baseDir ,numberOfImages , groupSize=3 , downscale = 4):
+def run_7_depthMap(binPath,baseDir ,numberOfImages , groupSize=6 , downscale = 2):
     taskFolder = "/7_DepthMap"
     SilentMkdir(baseDir + taskFolder)
 
@@ -201,7 +227,7 @@ def run_8_depthMapFilter(binPath,baseDir):
     os.system(cmdLine)
 
 
-def run_9_meshing(binPath,baseDir  , maxInputPoints = 1000000  , maxPoints=2000000):
+def run_9_meshing(binPath,baseDir  , maxInputPoints = 50000000  , maxPoints=1000000):
     taskFolder = "/9_Meshing"
     SilentMkdir(baseDir + taskFolder)
 
@@ -245,7 +271,7 @@ def run_10_meshFiltering(binPath,baseDir ,keepLargestMeshOnly="True"):
     os.system(cmdLine)
 
 
-def run_11_meshDecimate(binPath,baseDir , simplificationFactor=0.5 , maxVertices=15000):
+def run_11_meshDecimate(binPath,baseDir , simplificationFactor=0.8 , maxVertices=15000):
     taskFolder = "/11_MeshDecimate"
     SilentMkdir(baseDir + taskFolder)
 
@@ -265,7 +291,7 @@ def run_11_meshDecimate(binPath,baseDir , simplificationFactor=0.5 , maxVertices
     os.system(cmdLine)
 
 
-def run_12_meshResampling(binPath,baseDir , simplificationFactor=0.5 , maxVertices=15000):
+def run_12_meshResampling(binPath,baseDir , simplificationFactor=0.8 , maxVertices=15000):
     taskFolder = "/12_MeshResampling"
     SilentMkdir(baseDir + taskFolder)
 
@@ -324,11 +350,11 @@ def main():
     SilentMkdir(baseDir)
 
     startTime = time.time()
-    
+
     run_1_cameraInit(binPath,baseDir,imgDir)
-    run_2_featureExtraction(binPath,baseDir)
+    run_2_featureExtraction(binPath,baseDir , numberOfImages)
     run_3_imageMatching(binPath,baseDir)
-    run_4_featureMatching(binPath,baseDir)
+    run_4_featureMatching(binPath,baseDir,numberOfImages)
     run_5_structureFromMotion(binPath,baseDir)
     run_6_prepareDenseScene(binPath,baseDir)
     run_7_depthMap(binPath,baseDir , numberOfImages )
@@ -339,9 +365,12 @@ def main():
     run_12_meshResampling(binPath,baseDir)
     run_13_texturing(binPath,baseDir)
 
-    endTime = time.time()
+    
     print("-------------------------------- DONE ----------------------")
-    print("time elapsed: " + str(endTime-startTime))
+    endTime = time.time()
+    hours, rem = divmod(endTime-startTime, 3600)
+    minutes, seconds = divmod(rem, 60)
+    print("time elapsed: "+"{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
     input("press any key to close")
 
 
