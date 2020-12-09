@@ -18,7 +18,7 @@ python meshroom_CLI.py
 ##PATH_OF_FOLDER_TO_PUT_THE_MODEL##
 ##PATH_OF_FOLDER_WITH_IMAGES##
 ```
-The user should provide 3 paths separated by single blank spaces and using absolute paths , paths should be written in quotation marks:
+The user should provide 3 paths separated by single blank spaces and using absolute paths , paths should be written inside quotation marks:
 * The path to the Bin folder, located in the Meshroom directory /aliceVision (in the 2020.1.1 version)
 * The folder for the outputs. If the folder doesn't exist the script will create a new one
 * The folder containing the images. It should onnly contain image files and nothing else.
@@ -29,21 +29,32 @@ The code can be called used the .bat file (which has to be previously modified w
 python meshroom_CLI.py "C:\Users\user\Desktop\Meshroom-2020.1.1\aliceVision\bin" "C:\Users\user\Desktop\Output" "C:\Users\user\Desktop\Images"
 ```
 
+The user can of course call the python file from the command line without using the bat file.
 
-for testing purposes, there is a small database of 6 pictures located in /dataset_monstree-master/mini6 . 
+### Output ###
+The script generates 13 folders:
+* 1_CameraInit
+* 2_FeatureExtraction
+* 3_ImageMatching
+* 4_featureMatching
+* 5_structureFromMotion
+* 6_PrepareDenseScene
+* 7_DepthMap
+* 8_DepthMapFilter
+* 9_Meshing
+* 10_MeshFiltering
+* 11_MeshDecimate
+* 12_MeshResampling
+* 13_Texturing
+
+The final mesh containing the texture(s) should be in the last folder (13_texturing). 
+
+### The script ###
+The script contains 13 functions (one for each node). Each function calls a .exe file located in the Bin folder of the Meshroom directory and passes the necesary parameters to run it. In general, all the meshroom functions requiere one or various input files and and output files. Specifically, each function requires some other parameters. For our use, we only set as variables the parameters that we consider to be necesary for our workflow. These parameters are set as parameters in the functions. All the other parameters are hardcoded.
 
 
-The program can be runned with the run.bat file. You should change the 3 parameters in the bat file to make it work:
+### Small image set ###
 
--absolute path to the Bin folder inside the Meshroom folder
-
--absolute path to the folder in which the output files will be stored (if the folder doesn't exist it will create a new one)
-
--Absolute path to the folder containing the images, the folder should only contain images
-
-
-
-*All the paths have to be absolute and written inside quotation marks (""), this is specially important if one of the paths contain spaces.
-
+for testing purposes, there is a small database of 6 pictures located in /dataset_monstree-master/mini6 . Those files are not needed to run the code and can be dismissed.
 
 
