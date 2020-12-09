@@ -1,5 +1,9 @@
-# meshroom_CLI
-Python script to control the phtogrammetry software Meshroom without its GUI
+# meshroom_CLI #
+### Python script to control the phtogrammetry software Meshroom directly from the command line without the use of its GUI ###
+
+Meshroom (#https://alicevision.org/) is an open source tool for creating 3d models out of images, the purpose of this repository is create a code that can use the CLI tool of the software to automate the process of creating 3d meshes.
+
+
 
 
 To run the code it is necesary to have Python 3 installed.
