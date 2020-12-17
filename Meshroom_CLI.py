@@ -61,7 +61,7 @@ def run_2_featureExtraction(binPath,baseDir , numberOfImages , imagesPerGroup=40
 
     #when there are more than 40 images, it is good to send them in groups
     if(numberOfImages>imagesPerGroup):
-        numberOfGroups=math.ceil( numberOfImages/imagesPerGroup)
+        numberOfGroups=int(math.ceil( numberOfImages/imagesPerGroup))
         for i in range(numberOfGroups):
             cmd=cmdLine + " --rangeStart {} --rangeSize {} ".format(i*imagesPerGroup,imagesPerGroup)
             print("------- group {} / {} --------".format(i+1,numberOfGroups))
@@ -189,7 +189,7 @@ def run_7_depthMap(binPath,baseDir ,numberOfImages , groupSize=6 , downscale = 2
     cmdLine += " --downscale " + str(downscale)
 
     
-    numberOfBatches = math.ceil( numberOfImages / groupSize )
+    numberOfBatches = int(math.ceil( numberOfImages / groupSize ))
 
     for i in range(numberOfBatches):
         groupStart = groupSize * i
@@ -362,7 +362,7 @@ def main():
     hours, rem = divmod(endTime-startTime, 3600)
     minutes, seconds = divmod(rem, 60)
     print("time elapsed: "+"{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
-    input("press any key to close")
+    raw_input("press any key to close")
 
 
 main()

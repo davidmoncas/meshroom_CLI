@@ -1,1 +1,1 @@
-python meshroom_CLI.py ##PATH_TO_BIN_FOLDER_OF_MESHROOM## ##PATH_OF_FOLDER_TO_PUT_THE_MODEL## ##PATH_OF_FOLDER_WITH_IMAGES##
+python meshroom_CLI.py "Bin folder of the Meshroom folder" "Output folder" "Input folder with images"
