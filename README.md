@@ -58,3 +58,5 @@ The script contains 13 functions (one for each node). Each function calls a .exe
 for testing purposes, there is a small database of 6 pictures located in /dataset_monstree-master/mini6 . Those files are not needed to run the code and can be dismissed.
 
 
+### Linux Implementation ###
+For linux users, please use the code from the branch Linux
